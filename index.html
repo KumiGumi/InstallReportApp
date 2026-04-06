@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Install Report Generator Pro</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2, h3 { color: #0056b3; border-bottom: 2px solid #eef2f5; padding-bottom: 5px; }
+        h1 { margin-bottom: 5px; border-bottom: none; padding-bottom: 0; }
+        .subtitle { margin-top: 0; color: #666; font-size: 0.9em; border-bottom: 2px solid #eef2f5; padding-bottom: 15px; }
+        .toolbar { background: #333; padding: 10px; border-radius: 5px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; color: white;}
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        input[type="text"], input[type="number"], input[type="date"], select, textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .checklist-group { display: none; margin-top: 15px; padding: 15px; background: #eef2f5; border-radius: 5px; }
+        .checkbox-item { display: flex; align-items: center; margin-bottom: 5px; font-weight: normal; }
+        .checkbox-item input { margin-right: 10px; width: auto; }
+
+        /* Table Styles */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: middle;}
+        th { background-color: #f2f2f2; }
+        td input, td select { margin-top: 0; }
+        .action-col { width: 60px; text-align: center; }
+        .check-col { width: 70px; text-align: center; }
+
+        /* Buttons */
+        .btn { background-color: #0056b3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; font-weight: bold;}
+        .btn:hover { background-color: #004494; }
+        .btn-green { background-color: #28a745; }
+        .btn-green:hover { background-color: #218838; }
+        .btn-orange { background-color: #fd7e14; }
+        .btn-orange:hover { background-color: #e86e04; }
+        .btn-delete { background-color: #dc3545; padding: 6px 10px; margin-top: 0; }
+        .btn-delete:hover { background-color: #c82333; }
+        .btn-copy { background-color: #6c757d; display: none; margin-left: 10px; }
+        .btn-copy:hover { background-color: #5a6268; }
+
+        #outputArea { margin-top: 15px; padding: 15px; background: #2b2b2b; color: #17a2b8; border-radius: 5px; white-space: pre-wrap; display: none; font-family: monospace; font-size: 14px;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="toolbar">
+        <strong>Project Manager:</strong>
+        <button class="btn btn-orange" style="margin-top: 0;" onclick="saveProjectState()">💾 Save Project As...</button>
+        <input type="file" id="loadFile" accept=".json" style="width: auto; margin-top: 0;" onchange="loadProjectState(event)">
+    </div>
+
+    <h1>Daily Install Report Generator</h1>
+    <p class="subtitle">by me</p>
+
+    <h2>1. Job Information</h2>
+    <label>Project Name (For Save File):</label> <input type="text" id="projectName" placeholder="e.g., First Solar Site A">
+    <label>Customer:</label> <input type="text" id="customer" placeholder="e.g., Compass">
+    <label>Revenue Center:</label> <input type="text" id="revenueCenter" placeholder="e.g., FRSTSOLR - First Solar #23716">
+
+    <h2>2. Task Checklist</h2>
+    <label>Select Job Type:</label>
+    <select id="jobType" onchange="showChecklist()">
+        <option value="">-- Select an option --</option>
+        <option value="themeUpgrade">Theme Upgrade</option>
+        <option value="centricUpgrade">Centric Upgrade</option>
+        <option value="fullStandardInstall">Full Standard Install</option>
+    </select>
+
+    <div id="themeUpgrade" class="checklist-group">
+        <h3>Theme Upgrade Tasks</h3>
+        <label class="checkbox-item"><input type="checkbox" id="tu1" class="task" value="Download new theme"> Download new theme</label>
+        <label class="checkbox-item"><input type="checkbox" id="tu2" class="task" value="Add theme to TM"> Add theme to TM</label>
+        <label class="checkbox-item"><input type="checkbox" id="tu3" class="task" value="Run New Software Update"> Run New Software Update</label>
+        <label class="checkbox-item"><input type="checkbox" id="tu4" class="task" value="Delete old theme from server"> Delete old theme from server</label>
+        <label class="checkbox-item"><input type="checkbox" id="tu5" class="task" value="Delete old theme from clients"> Delete old theme from clients</label>
+        <label class="checkbox-item"><input type="checkbox" id="tu6" class="task" value="Cross Publish"> Cross Publish</label>
+    </div>
+
+    <div id="centricUpgrade" class="checklist-group">
+        <h3>Centric Upgrade Tasks</h3>
+        <h4>Shared Theme Tasks</h4>
+        <label class="checkbox-item"><input type="checkbox" id="cu1" class="task" value="Download new theme"> Download new theme</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu2" class="task" value="Add theme to TM"> Add theme to TM</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu3" class="task" value="Run New Software Update"> Run New Software Update</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu4" class="task" value="Delete old theme from server"> Delete old theme from server</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu5" class="task" value="Delete old theme from clients"> Delete old theme from clients</label>
+
+        <h4>Centric Specific Tasks</h4>
+        <label class="checkbox-item"><input type="checkbox" id="cu6" class="task" value="Add the Centric site ID"> Add the Centric site ID</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu7" class="task" value="Enable Auto select item"> Enable Auto select item</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu8" class="task" value="Enable auto select single menu"> Enable auto select single menu</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu9" class="task" value="Enable search menu buttons"> Enable search menu buttons</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu10" class="task" value="Enable back to category"> Enable back to category</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu11" class="task" value="Enable edit order"> Enable edit order</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu12" class="task" value="Setup menu integration"> Setup menu integration</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu13" class="task" value="Cross publish from blank site"> Cross publish from blank site</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu14" class="task" value="Publish to test site"> Publish to test site</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu15" class="task" value="Test OMS routing"> Test OMS routing</label>
+        <label class="checkbox-item"><input type="checkbox" id="cu16" class="task" value="Test OSM routing"> Test OSM routing</label>
+    </div>
+
+    <div id="fullStandardInstall" class="checklist-group">
+        <h3>Full Standard Install Tasks</h3>
+        <label class="checkbox-item"><input type="checkbox" id="fsi1" class="task" value="Inventory/Confirm/Unpack/Stage Hardware"> Inventory/Confirm/Unpack/Stage Hardware</label>
+        <label class="checkbox-item"><input type="checkbox" id="fsi2" class="task" value="BIOS set for AC Power On"> BIOS set for AC Power On</label>
+        <label class="checkbox-item"><input type="checkbox" id="fsi3" class="task" value="Set Hostname & IP Address"> Set Hostname & IP Address</label>
+        <label class="checkbox-item"><input type="checkbox" id="fsi4" class="task" value="Set Time Zone"> Set Time Zone</label>
+        <label class="checkbox-item"><input type="checkbox" id="fsi5" class="task" value="Test Volume & Install Drivers"> Test Volume & Install Drivers</label>
+        <label class="checkbox-item"><input type="checkbox" id="fsi6" class="task" value="TRAIN THE CUSTOMER!!!"> TRAIN THE CUSTOMER!!!</label>
+        </div>
+
+    <h2>3. Device Inventory</h2>
+    <table id="deviceTable">
+        <tr>
+            <th>Hostname</th>
+            <th>Serial Number</th>
+            <th>Device Key</th>
+            <th>Hardware Type</th>
+            <th class="action-col">Action</th>
+        </tr>
+        <tr class="devRow">
+            <td><input type="text" class="devName" value="PTM"></td>
+            <td><input type="text" class="devSerial" placeholder="e.g., SN-12345"></td>
+            <td><input type="text" class="devKey" placeholder="e.g., ABC-123"></td>
+            <td>
+                <select class="devType">
+                    <option value="">-- Select --</option>
+                    <option value="18&quot;">18"</option>
+                    <option value="X22">X22</option>
+                    <option value="Tablet">Tablet</option>
+                </select>
+            </td>
+            <td class="action-col"><span style="color: gray; font-size: 0.8em;">Req.</span></td>
+        </tr>
+        <tr class="devRow">
+            <td><input type="text" class="devName" value="STM"></td>
+            <td><input type="text" class="devSerial" placeholder="e.g., SN-67890"></td>
+            <td><input type="text" class="devKey" placeholder="e.g., DEF-456"></td>
+            <td>
+                <select class="devType">
+                    <option value="">-- Select --</option>
+                    <option value="18&quot;">18"</option>
+                    <option value="X22">X22</option>
+                    <option value="Tablet">Tablet</option>
+                </select>
+            </td>
+            <td class="action-col"><span style="color: gray; font-size: 0.8em;">Req.</span></td>
+        </tr>
+    </table>
+    <button class="btn btn-green" onclick="addDeviceRow()">+ Add Device</button>
+    <button class="btn" onclick="exportCSV()" style="background-color: #17a2b8;">⬇ Export Inventory to CSV</button>
+
+    <h2>4. Issues Log</h2>
+    <table id="issuesTable">
+        <tr>
+            <th>Issue Description</th>
+            <th class="check-col">Solved?</th>
+            <th class="action-col">Action</th>
+        </tr>
+    </table>
+    <button class="btn btn-green" onclick="addIssueRow()">+ Add Issue</button>
+
+    <h2>5. Work Hours</h2>
+    <table id="hoursTable">
+        <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Hours</th>
+            <th class="action-col">Action</th>
+        </tr>
+    </table>
+    <button class="btn btn-green" onclick="addHoursRow()">+ Add Work Entry</button>
+
+    <hr style="margin-top: 30px;">
+
+    <label class="checkbox-item" style="margin-bottom: 15px; font-weight: bold;">
+        <input type="checkbox" id="includePending" checked style="transform: scale(1.2);"> Include Pending Tasks in Email Summary
+    </label>
+
+    <div style="display: flex; align-items: center;">
+        <button class="btn" onclick="generateReport()">Summarize Progress (Email Format)</button>
+        <button class="btn btn-copy" id="copyBtn" onclick="copyOutput()">📋 Copy to Clipboard</button>
+    </div>
+
+    <div id="outputArea"></div>
+</div>
+
+<script>
+    function showChecklist() {
+        document.querySelectorAll('.checklist-group').forEach(div => div.style.display = 'none');
+        const selected = document.getElementById('jobType').value;
+        if (selected) document.getElementById(selected).style.display = 'block';
+    }
+
+    function removeRow(btn) {
+        const row = btn.closest('tr');
+        row.parentNode.removeChild(row);
+    }
+
+    function addDeviceRow() {
+        const table = document.getElementById('deviceTable');
+        const row = table.insertRow(-1);
+        row.className = "devRow";
+        row.innerHTML = `
+            <td><input type="text" class="devName" placeholder="Hostname"></td>
+            <td><input type="text" class="devSerial" placeholder="Serial Number"></td>
+            <td><input type="text" class="devKey" placeholder="Device Key"></td>
+            <td>
+                <select class="devType">
+                    <option value="">-- Select --</option>
+                    <option value="18&quot;">18"</option>
+                    <option value="X22">X22</option>
+                    <option value="Tablet">Tablet</option>
+                </select>
+            </td>
+            <td class="action-col"><button class="btn btn-delete" onclick="removeRow(this)">X</button></td>
+        `;
+    }
+
+    function addIssueRow() {
+        const table = document.getElementById('issuesTable');
+        const row = table.insertRow(-1);
+        row.className = "issueRow";
+        row.innerHTML = `
+            <td><input type="text" class="issueText" placeholder="Describe the issue..."></td>
+            <td class="check-col"><input type="checkbox" class="issueSolved" style="transform: scale(1.5);"></td>
+            <td class="action-col"><button class="btn btn-delete" onclick="removeRow(this)">X</button></td>
+        `;
+    }
+
+    function addHoursRow() {
+        const table = document.getElementById('hoursTable');
+        const row = table.insertRow(-1);
+        row.className = "hourRow";
+        const today = new Date().toISOString().split('T')[0];
+        row.innerHTML = `
+            <td><input type="date" class="hourDate" value="${today}"></td>
+            <td>
+                <select class="hourType" onchange="toggleHoursInput(this)">
+                    <option value="">-- Select --</option>
+                    <option value="Travel">Travel Hours</option>
+                    <option value="Billable">Billable Hours</option>
+                </select>
+            </td>
+            <td>
+                <input type="number" class="hourCount" min="8" max="24" step="0.5" placeholder="e.g. 8" style="display:none;">
+                <span class="travelText" style="display:none; color: gray; margin-top: 10px; display: inline-block;">Auto: 2 Hours</span>
+            </td>
+            <td class="action-col"><button class="btn btn-delete" onclick="removeRow(this)">X</button></td>
+        `;
+    }
+
+    function toggleHoursInput(selectElement) {
+        const row = selectElement.closest('tr');
+        const numInput = row.querySelector('.hourCount');
+        const travelText = row.querySelector('.travelText');
+        if (selectElement.value === 'Travel') {
+            numInput.style.display = 'none';
+            travelText.style.display = 'inline-block';
+            numInput.value = 2;
+        } else if (selectElement.value === 'Billable') {
+            numInput.style.display = 'block';
+            travelText.style.display = 'none';
+            if (numInput.value == 2 || numInput.value == "") numInput.value = 8;
+        } else {
+            numInput.style.display = 'none';
+            travelText.style.display = 'none';
+        }
+    }
+
+    function generateReport() {
+        const customer = document.getElementById('customer').value || "[Customer]";
+        const revCenter = document.getElementById('revenueCenter').value || "[Revenue Center]";
+
+        let completedTasks = "";
+        let pendingTasks = "";
+        document.querySelectorAll('.checklist-group[style*="block"] .task').forEach(cb => {
+            if (cb.checked) {
+                completedTasks += "• " + cb.value + "\n";
+            } else {
+                pendingTasks += "• " + cb.value + "\n";
+            }
+        });
+        if (!completedTasks) completedTasks = "• None\n";
+        if (!pendingTasks) pendingTasks = "• None\n";
+
+        let outstandingIssues = "";
+        let solvedIssues = "";
+        document.querySelectorAll('.issueRow').forEach(row => {
+            const text = row.querySelector('.issueText').value;
+            const isSolved = row.querySelector('.issueSolved').checked;
+            if (text.trim() !== "") {
+                if (isSolved) solvedIssues += "• " + text + "\n";
+                else outstandingIssues += "• " + text + "\n";
+            }
+        });
+        if (!outstandingIssues) outstandingIssues = "• None\n";
+
+        let workHoursLog = "";
+        let totalHours = 0;
+        document.querySelectorAll('.hourRow').forEach(row => {
+            const dateVal = row.querySelector('.hourDate').value;
+            const typeVal = row.querySelector('.hourType').value;
+            const hoursVal = parseFloat(row.querySelector('.hourCount').value) || 0;
+            let formattedDate = dateVal;
+            if (dateVal) {
+                const parts = dateVal.split('-');
+                formattedDate = `${parts[1]}/${parts[2]}/${parts[0]}`;
+            }
+            if (typeVal === 'Travel') {
+                workHoursLog += `${formattedDate} - 2 Travel Hours Billable\n`;
+                totalHours += 2;
+            } else if (typeVal === 'Billable' && hoursVal > 0) {
+                workHoursLog += `${formattedDate} - ${hoursVal} Billable Hours\n`;
+                totalHours += hoursVal;
+            }
+        });
+        if (!workHoursLog) workHoursLog = "No hours logged.\n";
+        else workHoursLog += `\nTotal Hours: ${totalHours} Total Billable\n`;
+
+        // ASSEMBLE FINAL REPORT DYNAMICALLY
+        let report = `Customer: ${customer}\nRevenue Center: ${revCenter}\n\n`;
+        report += `Outstanding Issues:\n${outstandingIssues}\n`;
+        report += `Tasks Completed:\n${completedTasks}\n`;
+
+        if (document.getElementById('includePending').checked) {
+            report += `Pending Tasks:\n${pendingTasks}\n`;
+        }
+
+        if (solvedIssues.trim() !== "") {
+            report += `Solved Issues:\n${solvedIssues}\n`;
+        }
+
+        report += `Contract Hours:\n${workHoursLog}`;
+
+        const out = document.getElementById('outputArea');
+        out.style.display = 'block';
+        out.innerText = report;
+
+        document.getElementById('copyBtn').style.display = 'inline-block';
+    }
+
+    function copyOutput() {
+        const textToCopy = document.getElementById('outputArea').innerText;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const copyBtn = document.getElementById('copyBtn');
+            const originalText = "📋 Copy to Clipboard";
+            copyBtn.innerText = "✅ Copied!";
+            copyBtn.style.backgroundColor = "#28a745";
+            setTimeout(() => {
+                copyBtn.innerText = originalText;
+                copyBtn.style.backgroundColor = "#6c757d";
+            }, 2000);
+        }).catch(err => {
+            alert('Failed to copy text: ' + err);
+        });
+    }
+
+    function exportCSV() {
+        const rows = document.querySelectorAll('.devRow');
+        let csvContent = "data:text/csv;charset=utf-8,Hostname,Serial Number,Device Key,Hardware Type\n";
+        rows.forEach(row => {
+            const name = row.querySelector('.devName').value;
+            const serial = row.querySelector('.devSerial').value;
+            const key = row.querySelector('.devKey').value;
+            const type = row.querySelector('.devType').value;
+            if (name || serial || key || type) {
+                csvContent += `"${name}","${serial}","${key}","${type}"\n`;
+            }
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Device_Inventory.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // --- UPDATED: NATIVE SAVE AS LOGIC ---
+    async function saveProjectState() {
+        const pName = document.getElementById('projectName').value || "Unnamed_Project";
+        const data = {
+            projectName: pName,
+            customer: document.getElementById('customer').value,
+            revenueCenter: document.getElementById('revenueCenter').value,
+            jobType: document.getElementById('jobType').value,
+            checkboxes: {},
+            devices: [],
+            issues: [],
+            hours: []
+        };
+        document.querySelectorAll('.task').forEach(cb => { data.checkboxes[cb.id] = cb.checked; });
+        document.querySelectorAll('.devRow').forEach(row => {
+            data.devices.push({
+                name: row.querySelector('.devName').value,
+                serial: row.querySelector('.devSerial').value,
+                key: row.querySelector('.devKey').value,
+                type: row.querySelector('.devType').value
+            });
+        });
+        document.querySelectorAll('.issueRow').forEach(row => {
+            data.issues.push({
+                text: row.querySelector('.issueText').value,
+                solved: row.querySelector('.issueSolved').checked
+            });
+        });
+        document.querySelectorAll('.hourRow').forEach(row => {
+            data.hours.push({
+                date: row.querySelector('.hourDate').value,
+                type: row.querySelector('.hourType').value,
+                count: row.querySelector('.hourCount').value
+            });
+        });
+
+        const jsonString = JSON.stringify(data, null, 2);
+        const defaultFileName = pName.replace(/\s+/g, '_') + "_SaveData.json";
+
+        try {
+            // Check if the modern File System Access API is supported (Chrome/Edge)
+            if (window.showSaveFilePicker) {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: defaultFileName,
+                    types: [{
+                        description: 'JSON File',
+                        accept: { 'application/json': ['.json'] },
+                    }],
+                });
+                const writable = await handle.createWritable();
+                await writable.write(jsonString);
+                await writable.close();
+            } else {
+                // Fallback for browsers that don't support it (like Firefox or older browsers)
+                const blob = new Blob([jsonString], { type: "application/json" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = defaultFileName;
+                link.click();
+            }
+        } catch (err) {
+            // Ignore error if the user just clicked "Cancel" on the dialog
+            if (err.name !== 'AbortError') {
+                alert('Save failed: ' + err.message);
+            }
+        }
+    }
+
+    function loadProjectState(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = JSON.parse(e.target.result);
+            document.getElementById('projectName').value = data.projectName || '';
+            document.getElementById('customer').value = data.customer || '';
+            document.getElementById('revenueCenter').value = data.revenueCenter || '';
+            document.getElementById('jobType').value = data.jobType || '';
+            showChecklist();
+            for (const [id, isChecked] of Object.entries(data.checkboxes || {})) {
+                const cb = document.getElementById(id);
+                if (cb) cb.checked = isChecked;
+            }
+            const devTable = document.getElementById('deviceTable');
+            while (devTable.rows.length > 1) devTable.deleteRow(1);
+            if(data.devices) {
+                data.devices.forEach((dev) => {
+                    addDeviceRow();
+                    const lastRow = devTable.rows[devTable.rows.length - 1];
+                    lastRow.querySelector('.devName').value = dev.name;
+                    lastRow.querySelector('.devSerial').value = dev.serial || '';
+                    lastRow.querySelector('.devKey').value = dev.key;
+                    lastRow.querySelector('.devType').value = dev.type;
+                    if(devTable.rows.length <= 3) {
+                         lastRow.querySelector('.action-col').innerHTML = '<span style="color: gray; font-size: 0.8em;">Req.</span>';
+                    }
+                });
+            }
+            const issueTable = document.getElementById('issuesTable');
+            while (issueTable.rows.length > 1) issueTable.deleteRow(1);
+            if(data.issues) {
+                data.issues.forEach(issue => {
+                    addIssueRow();
+                    const lastRow = issueTable.rows[issueTable.rows.length - 1];
+                    lastRow.querySelector('.issueText').value = issue.text;
+                    lastRow.querySelector('.issueSolved').checked = issue.solved;
+                });
+            }
+            const hourTable = document.getElementById('hoursTable');
+            while (hourTable.rows.length > 1) hourTable.deleteRow(1);
+            if(data.hours) {
+                data.hours.forEach(hr => {
+                    addHoursRow();
+                    const lastRow = hourTable.rows[hourTable.rows.length - 1];
+                    lastRow.querySelector('.hourDate').value = hr.date;
+                    const typeSelect = lastRow.querySelector('.hourType');
+                    typeSelect.value = hr.type;
+                    lastRow.querySelector('.hourCount').value = hr.count;
+                    toggleHoursInput(typeSelect);
+                });
+            }
+        };
+        reader.readAsText(file);
+    }
+</script>
+</body>
+</html>
