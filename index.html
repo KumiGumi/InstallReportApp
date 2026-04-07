@@ -244,7 +244,7 @@
             </td>
             <td>
                 <input type="number" class="hourCount" min="8" max="24" step="0.5" placeholder="e.g. 8" style="display:none;">
-                <span class="travelText" style="display:none; color: gray; margin-top: 10px; display: inline-block;">Auto: 2 Hours</span>
+                <span class="travelText" style="display:none; color: gray; margin-top: 10px;">Auto: 2 Hours</span>
             </td>
             <td class="action-col"><button class="btn btn-delete" onclick="removeRow(this)">X</button></td>
         `;
@@ -385,6 +385,7 @@
             customer: document.getElementById('customer').value,
             revenueCenter: document.getElementById('revenueCenter').value,
             jobType: document.getElementById('jobType').value,
+            includePending: document.getElementById('includePending').checked,
             checkboxes: {},
             devices: [],
             issues: [],
@@ -450,11 +451,20 @@
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
-            const data = JSON.parse(e.target.result);
+            let data;
+            try {
+                data = JSON.parse(e.target.result);
+            } catch (err) {
+                alert('Failed to load file: Invalid JSON format.');
+                return;
+            }
             document.getElementById('projectName').value = data.projectName || '';
             document.getElementById('customer').value = data.customer || '';
             document.getElementById('revenueCenter').value = data.revenueCenter || '';
             document.getElementById('jobType').value = data.jobType || '';
+            if (data.includePending !== undefined) {
+                document.getElementById('includePending').checked = data.includePending;
+            }
             showChecklist();
             for (const [id, isChecked] of Object.entries(data.checkboxes || {})) {
                 const cb = document.getElementById(id);
@@ -463,15 +473,15 @@
             const devTable = document.getElementById('deviceTable');
             while (devTable.rows.length > 1) devTable.deleteRow(1);
             if(data.devices) {
-                data.devices.forEach((dev) => {
+                data.devices.forEach((dev, index) => {
                     addDeviceRow();
                     const lastRow = devTable.rows[devTable.rows.length - 1];
                     lastRow.querySelector('.devName').value = dev.name;
                     lastRow.querySelector('.devSerial').value = dev.serial || '';
                     lastRow.querySelector('.devKey').value = dev.key;
                     lastRow.querySelector('.devType').value = dev.type;
-                    if(devTable.rows.length <= 3) {
-                         lastRow.querySelector('.action-col').innerHTML = '<span style="color: gray; font-size: 0.8em;">Req.</span>';
+                    if(index < 2) {
+                        lastRow.querySelector('.action-col').innerHTML = '<span style="color: gray; font-size: 0.8em;">Req.</span>';
                     }
                 });
             }
