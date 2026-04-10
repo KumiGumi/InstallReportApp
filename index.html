@@ -37,6 +37,19 @@
         .btn-copy { background-color: #6c757d; display: none; margin-left: 10px; }
         .btn-copy:hover { background-color: #5a6268; }
 
+        /* Hide task feature */
+        .task-item { display: flex; align-items: center; margin-bottom: 5px; }
+        .task-item .checkbox-item { margin-bottom: 0; flex: 1; }
+        .btn-hide { background: none; border: 1px solid #ddd; border-radius: 3px; color: #aaa; cursor: pointer; font-size: 0.75em; padding: 2px 7px; margin-left: 8px; white-space: nowrap; line-height: 1.4; }
+        .btn-hide:hover { border-color: #dc3545; color: #dc3545; }
+        .task-item.task-hidden { display: none; }
+        .task-item.task-hidden.show-hidden { display: flex; opacity: 0.4; }
+        .task-item.task-hidden.show-hidden label { text-decoration: line-through; }
+        .task-item.task-hidden.show-hidden .btn-hide { color: #0056b3; border-color: #0056b3; }
+        .hidden-tasks-bar { margin-top: 10px; font-size: 0.85em; }
+        .hidden-tasks-bar a { color: #888; text-decoration: none; cursor: pointer; }
+        .hidden-tasks-bar a:hover { color: #555; }
+
         #outputArea { margin-top: 15px; padding: 15px; background: #2b2b2b; color: #17a2b8; border-radius: 5px; white-space: pre-wrap; display: none; font-family: monospace; font-size: 14px;}
     </style>
 </head>
@@ -68,46 +81,49 @@
 
     <div id="themeUpgrade" class="checklist-group">
         <h3>Theme Upgrade Tasks</h3>
-        <label class="checkbox-item"><input type="checkbox" id="tu1" class="task" value="Download new theme"> Download new theme</label>
-        <label class="checkbox-item"><input type="checkbox" id="tu2" class="task" value="Add theme to TM"> Add theme to TM</label>
-        <label class="checkbox-item"><input type="checkbox" id="tu3" class="task" value="Run New Software Update"> Run New Software Update</label>
-        <label class="checkbox-item"><input type="checkbox" id="tu4" class="task" value="Delete old theme from server"> Delete old theme from server</label>
-        <label class="checkbox-item"><input type="checkbox" id="tu5" class="task" value="Delete old theme from clients"> Delete old theme from clients</label>
-        <label class="checkbox-item"><input type="checkbox" id="tu6" class="task" value="Cross Publish"> Cross Publish</label>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="tu1" class="task" value="Download new theme"> Download new theme</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="tu2" class="task" value="Add theme to TM"> Add theme to TM</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="tu3" class="task" value="Run New Software Update"> Run New Software Update</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="tu4" class="task" value="Delete old theme from server"> Delete old theme from server</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="tu5" class="task" value="Delete old theme from clients"> Delete old theme from clients</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="tu6" class="task" value="Cross Publish"> Cross Publish</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="hidden-tasks-bar" style="display:none;"><a onclick="toggleShowHidden(this)">&#9658; Show <span class="hidden-count">0</span> hidden task(s)</a></div>
     </div>
 
     <div id="centricUpgrade" class="checklist-group">
         <h3>Centric Upgrade Tasks</h3>
         <h4>Shared Theme Tasks</h4>
-        <label class="checkbox-item"><input type="checkbox" id="cu1" class="task" value="Download new theme"> Download new theme</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu2" class="task" value="Add theme to TM"> Add theme to TM</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu3" class="task" value="Run New Software Update"> Run New Software Update</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu4" class="task" value="Delete old theme from server"> Delete old theme from server</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu5" class="task" value="Delete old theme from clients"> Delete old theme from clients</label>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu1" class="task" value="Download new theme"> Download new theme</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu2" class="task" value="Add theme to TM"> Add theme to TM</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu3" class="task" value="Run New Software Update"> Run New Software Update</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu4" class="task" value="Delete old theme from server"> Delete old theme from server</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu5" class="task" value="Delete old theme from clients"> Delete old theme from clients</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
 
         <h4>Centric Specific Tasks</h4>
-        <label class="checkbox-item"><input type="checkbox" id="cu6" class="task" value="Add the Centric site ID"> Add the Centric site ID</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu7" class="task" value="Enable Auto select item"> Enable Auto select item</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu8" class="task" value="Enable auto select single menu"> Enable auto select single menu</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu9" class="task" value="Enable search menu buttons"> Enable search menu buttons</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu10" class="task" value="Enable back to category"> Enable back to category</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu11" class="task" value="Enable edit order"> Enable edit order</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu12" class="task" value="Setup menu integration"> Setup menu integration</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu13" class="task" value="Cross publish from blank site"> Cross publish from blank site</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu14" class="task" value="Publish to test site"> Publish to test site</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu15" class="task" value="Test OMS routing"> Test OMS routing</label>
-        <label class="checkbox-item"><input type="checkbox" id="cu16" class="task" value="Test OSM routing"> Test OSM routing</label>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu6" class="task" value="Add the Centric site ID"> Add the Centric site ID</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu7" class="task" value="Enable Auto select item"> Enable Auto select item</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu8" class="task" value="Enable auto select single menu"> Enable auto select single menu</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu9" class="task" value="Enable search menu buttons"> Enable search menu buttons</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu10" class="task" value="Enable back to category"> Enable back to category</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu11" class="task" value="Enable edit order"> Enable edit order</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu12" class="task" value="Setup menu integration"> Setup menu integration</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu13" class="task" value="Cross publish from blank site"> Cross publish from blank site</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu14" class="task" value="Publish to test site"> Publish to test site</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu15" class="task" value="Test OMS routing"> Test OMS routing</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="cu16" class="task" value="Test OSM routing"> Test OSM routing</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="hidden-tasks-bar" style="display:none;"><a onclick="toggleShowHidden(this)">&#9658; Show <span class="hidden-count">0</span> hidden task(s)</a></div>
     </div>
 
     <div id="fullStandardInstall" class="checklist-group">
         <h3>Full Standard Install Tasks</h3>
-        <label class="checkbox-item"><input type="checkbox" id="fsi1" class="task" value="Inventory/Confirm/Unpack/Stage Hardware"> Inventory/Confirm/Unpack/Stage Hardware</label>
-        <label class="checkbox-item"><input type="checkbox" id="fsi2" class="task" value="BIOS set for AC Power On"> BIOS set for AC Power On</label>
-        <label class="checkbox-item"><input type="checkbox" id="fsi3" class="task" value="Set Hostname & IP Address"> Set Hostname & IP Address</label>
-        <label class="checkbox-item"><input type="checkbox" id="fsi4" class="task" value="Set Time Zone"> Set Time Zone</label>
-        <label class="checkbox-item"><input type="checkbox" id="fsi5" class="task" value="Test Volume & Install Drivers"> Test Volume & Install Drivers</label>
-        <label class="checkbox-item"><input type="checkbox" id="fsi6" class="task" value="TRAIN THE CUSTOMER!!!"> TRAIN THE CUSTOMER!!!</label>
-        </div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="fsi1" class="task" value="Inventory/Confirm/Unpack/Stage Hardware"> Inventory/Confirm/Unpack/Stage Hardware</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="fsi2" class="task" value="BIOS set for AC Power On"> BIOS set for AC Power On</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="fsi3" class="task" value="Set Hostname &amp; IP Address"> Set Hostname &amp; IP Address</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="fsi4" class="task" value="Set Time Zone"> Set Time Zone</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="fsi5" class="task" value="Test Volume &amp; Install Drivers"> Test Volume &amp; Install Drivers</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="task-item"><label class="checkbox-item"><input type="checkbox" id="fsi6" class="task" value="TRAIN THE CUSTOMER!!!"> TRAIN THE CUSTOMER!!!</label><button class="btn-hide" onclick="toggleHideTask(this)">Hide</button></div>
+        <div class="hidden-tasks-bar" style="display:none;"><a onclick="toggleShowHidden(this)">&#9658; Show <span class="hidden-count">0</span> hidden task(s)</a></div>
+    </div>
 
     <h2>3. Device Inventory</h2>
     <table id="deviceTable">
@@ -192,6 +208,44 @@
         if (selected) document.getElementById(selected).style.display = 'block';
     }
 
+    function toggleHideTask(btn) {
+        const item = btn.closest('.task-item');
+        const isHiding = !item.classList.contains('task-hidden');
+        if (isHiding) {
+            item.querySelector('.task').checked = false;
+        }
+        item.classList.toggle('task-hidden', isHiding);
+        updateHiddenBar(btn.closest('.checklist-group'));
+    }
+
+    function updateHiddenBar(group) {
+        const hiddenCount = group.querySelectorAll('.task-item.task-hidden').length;
+        const bar = group.querySelector('.hidden-tasks-bar');
+        bar.style.display = hiddenCount > 0 ? 'block' : 'none';
+        bar.querySelector('.hidden-count').textContent = hiddenCount;
+        // If no hidden tasks remain, reset show-hidden state
+        if (hiddenCount === 0) {
+            group.querySelectorAll('.task-item').forEach(i => i.classList.remove('show-hidden'));
+            const link = bar.querySelector('a');
+            link.dataset.showing = '';
+            link.innerHTML = '&#9658; Show <span class="hidden-count">0</span> hidden task(s)';
+        }
+    }
+
+    function toggleShowHidden(link) {
+        const group = link.closest('.checklist-group');
+        const isShowing = link.dataset.showing === 'true';
+        group.querySelectorAll('.task-item.task-hidden').forEach(item => {
+            item.classList.toggle('show-hidden', !isShowing);
+            item.querySelector('.btn-hide').textContent = isShowing ? 'Hide' : 'Unhide';
+        });
+        const count = group.querySelector('.hidden-count').textContent;
+        link.dataset.showing = !isShowing;
+        link.innerHTML = isShowing
+            ? `&#9658; Show <span class="hidden-count">${count}</span> hidden task(s)`
+            : `&#9660; Hide <span class="hidden-count">${count}</span> hidden task(s)`;
+    }
+
     function removeRow(btn) {
         const row = btn.closest('tr');
         row.parentNode.removeChild(row);
@@ -274,7 +328,7 @@
 
         let completedTasks = "";
         let pendingTasks = "";
-        document.querySelectorAll('.checklist-group[style*="block"] .task').forEach(cb => {
+        document.querySelectorAll('.checklist-group[style*="block"] .task-item:not(.task-hidden) .task').forEach(cb => {
             if (cb.checked) {
                 completedTasks += "• " + cb.value + "\n";
             } else {
@@ -387,11 +441,15 @@
             jobType: document.getElementById('jobType').value,
             includePending: document.getElementById('includePending').checked,
             checkboxes: {},
+            hidden: {},
             devices: [],
             issues: [],
             hours: []
         };
-        document.querySelectorAll('.task').forEach(cb => { data.checkboxes[cb.id] = cb.checked; });
+        document.querySelectorAll('.task').forEach(cb => {
+            data.checkboxes[cb.id] = cb.checked;
+            data.hidden[cb.id] = cb.closest('.task-item').classList.contains('task-hidden');
+        });
         document.querySelectorAll('.devRow').forEach(row => {
             data.devices.push({
                 name: row.querySelector('.devName').value,
@@ -470,6 +528,11 @@
                 const cb = document.getElementById(id);
                 if (cb) cb.checked = isChecked;
             }
+            for (const [id, isHidden] of Object.entries(data.hidden || {})) {
+                const cb = document.getElementById(id);
+                if (cb) cb.closest('.task-item').classList.toggle('task-hidden', isHidden);
+            }
+            document.querySelectorAll('.checklist-group').forEach(group => updateHiddenBar(group));
             const devTable = document.getElementById('deviceTable');
             while (devTable.rows.length > 1) devTable.deleteRow(1);
             if(data.devices) {
