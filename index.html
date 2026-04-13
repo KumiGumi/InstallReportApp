@@ -221,6 +221,7 @@
     function updateHiddenBar(group) {
         const hiddenCount = group.querySelectorAll('.task-item.task-hidden').length;
         const bar = group.querySelector('.hidden-tasks-bar');
+        if (!bar) return;
         bar.style.display = hiddenCount > 0 ? 'block' : 'none';
         bar.querySelector('.hidden-count').textContent = hiddenCount;
         // If no hidden tasks remain, reset show-hidden state
@@ -506,6 +507,7 @@
 
     function loadProjectState(event) {
         const file = event.target.files[0];
+        event.target.value = '';  // Reset so the same file can be reloaded
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -516,60 +518,65 @@
                 alert('Failed to load file: Invalid JSON format.');
                 return;
             }
-            document.getElementById('projectName').value = data.projectName || '';
-            document.getElementById('customer').value = data.customer || '';
-            document.getElementById('revenueCenter').value = data.revenueCenter || '';
-            document.getElementById('jobType').value = data.jobType || '';
-            if (data.includePending !== undefined) {
-                document.getElementById('includePending').checked = data.includePending;
-            }
-            showChecklist();
-            for (const [id, isChecked] of Object.entries(data.checkboxes || {})) {
-                const cb = document.getElementById(id);
-                if (cb) cb.checked = isChecked;
-            }
-            for (const [id, isHidden] of Object.entries(data.hidden || {})) {
-                const cb = document.getElementById(id);
-                if (cb) cb.closest('.task-item').classList.toggle('task-hidden', isHidden);
-            }
-            document.querySelectorAll('.checklist-group').forEach(group => updateHiddenBar(group));
-            const devTable = document.getElementById('deviceTable');
-            while (devTable.rows.length > 1) devTable.deleteRow(1);
-            if(data.devices) {
-                data.devices.forEach((dev, index) => {
-                    addDeviceRow();
-                    const lastRow = devTable.rows[devTable.rows.length - 1];
-                    lastRow.querySelector('.devName').value = dev.name;
-                    lastRow.querySelector('.devSerial').value = dev.serial || '';
-                    lastRow.querySelector('.devKey').value = dev.key;
-                    lastRow.querySelector('.devType').value = dev.type;
-                    if(index < 2) {
-                        lastRow.querySelector('.action-col').innerHTML = '<span style="color: gray; font-size: 0.8em;">Req.</span>';
-                    }
-                });
-            }
-            const issueTable = document.getElementById('issuesTable');
-            while (issueTable.rows.length > 1) issueTable.deleteRow(1);
-            if(data.issues) {
-                data.issues.forEach(issue => {
-                    addIssueRow();
-                    const lastRow = issueTable.rows[issueTable.rows.length - 1];
-                    lastRow.querySelector('.issueText').value = issue.text;
-                    lastRow.querySelector('.issueSolved').checked = issue.solved;
-                });
-            }
-            const hourTable = document.getElementById('hoursTable');
-            while (hourTable.rows.length > 1) hourTable.deleteRow(1);
-            if(data.hours) {
-                data.hours.forEach(hr => {
-                    addHoursRow();
-                    const lastRow = hourTable.rows[hourTable.rows.length - 1];
-                    lastRow.querySelector('.hourDate').value = hr.date;
-                    const typeSelect = lastRow.querySelector('.hourType');
-                    typeSelect.value = hr.type;
-                    lastRow.querySelector('.hourCount').value = hr.count;
-                    toggleHoursInput(typeSelect);
-                });
+            try {
+                document.getElementById('projectName').value = data.projectName || '';
+                document.getElementById('customer').value = data.customer || '';
+                document.getElementById('revenueCenter').value = data.revenueCenter || '';
+                document.getElementById('jobType').value = data.jobType || '';
+                if (data.includePending !== undefined) {
+                    document.getElementById('includePending').checked = data.includePending;
+                }
+                showChecklist();
+                for (const [id, isChecked] of Object.entries(data.checkboxes || {})) {
+                    const cb = document.getElementById(id);
+                    if (cb) cb.checked = isChecked;
+                }
+                for (const [id, isHidden] of Object.entries(data.hidden || {})) {
+                    const cb = document.getElementById(id);
+                    const item = cb ? cb.closest('.task-item') : null;
+                    if (item) item.classList.toggle('task-hidden', isHidden);
+                }
+                document.querySelectorAll('.checklist-group').forEach(group => updateHiddenBar(group));
+                const devTable = document.getElementById('deviceTable');
+                while (devTable.rows.length > 1) devTable.deleteRow(1);
+                if(data.devices) {
+                    data.devices.forEach((dev, index) => {
+                        addDeviceRow();
+                        const lastRow = devTable.rows[devTable.rows.length - 1];
+                        lastRow.querySelector('.devName').value = dev.name || '';
+                        lastRow.querySelector('.devSerial').value = dev.serial || '';
+                        lastRow.querySelector('.devKey').value = dev.key || '';
+                        lastRow.querySelector('.devType').value = dev.type || '';
+                        if(index < 2) {
+                            lastRow.querySelector('.action-col').innerHTML = '<span style="color: gray; font-size: 0.8em;">Req.</span>';
+                        }
+                    });
+                }
+                const issueTable = document.getElementById('issuesTable');
+                while (issueTable.rows.length > 1) issueTable.deleteRow(1);
+                if(data.issues) {
+                    data.issues.forEach(issue => {
+                        addIssueRow();
+                        const lastRow = issueTable.rows[issueTable.rows.length - 1];
+                        lastRow.querySelector('.issueText').value = issue.text || '';
+                        lastRow.querySelector('.issueSolved').checked = issue.solved || false;
+                    });
+                }
+                const hourTable = document.getElementById('hoursTable');
+                while (hourTable.rows.length > 1) hourTable.deleteRow(1);
+                if(data.hours) {
+                    data.hours.forEach(hr => {
+                        addHoursRow();
+                        const lastRow = hourTable.rows[hourTable.rows.length - 1];
+                        lastRow.querySelector('.hourDate').value = hr.date || '';
+                        const typeSelect = lastRow.querySelector('.hourType');
+                        typeSelect.value = hr.type || '';
+                        lastRow.querySelector('.hourCount').value = hr.count || '';
+                        toggleHoursInput(typeSelect);
+                    });
+                }
+            } catch (err) {
+                alert('Error loading project: ' + err.message);
             }
         };
         reader.readAsText(file);
