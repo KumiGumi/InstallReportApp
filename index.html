@@ -507,10 +507,10 @@
 
     function loadProjectState(event) {
         const file = event.target.files[0];
-        event.target.value = '';  // Reset so the same file can be reloaded
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
+            event.target.value = '';  // Reset AFTER reading so File object stays valid
             let data;
             try {
                 data = JSON.parse(e.target.result);
