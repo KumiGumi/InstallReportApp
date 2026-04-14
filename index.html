@@ -42,10 +42,10 @@
         .task-item .checkbox-item { margin-bottom: 0; flex: 1; }
         .btn-hide { background: none; border: 1px solid #ddd; border-radius: 3px; color: #aaa; cursor: pointer; font-size: 0.75em; padding: 2px 7px; margin-left: 8px; white-space: nowrap; line-height: 1.4; }
         .btn-hide:hover { border-color: #dc3545; color: #dc3545; }
-        .task-item.task-hidden { display: none; }
-        .task-item.task-hidden.show-hidden { display: flex; opacity: 0.4; }
-        .task-item.task-hidden.show-hidden label { text-decoration: line-through; }
-        .task-item.task-hidden.show-hidden .btn-hide { color: #0056b3; border-color: #0056b3; }
+        .task-item.task-hidden { opacity: 0.4; }
+        .task-item.task-hidden label { text-decoration: line-through; }
+        .task-item.task-hidden .btn-hide { color: #0056b3; border-color: #0056b3; }
+        .task-item.task-hidden.task-collapsed { display: none; }
         .hidden-tasks-bar { margin-top: 10px; font-size: 0.85em; }
         .hidden-tasks-bar a { color: #888; text-decoration: none; cursor: pointer; }
         .hidden-tasks-bar a:hover { color: #555; }
@@ -284,12 +284,21 @@
 
     function toggleHideTask(btn) {
         const item = btn.closest('.task-item');
+        const group = btn.closest('.checklist-group');
         const isHiding = !item.classList.contains('task-hidden');
         if (isHiding) {
             item.querySelector('.task').checked = false;
+            item.classList.add('task-hidden');
+            btn.textContent = 'Unhide';
+            // If the group is already collapsed, collapse this new item immediately too
+            if (group.dataset.collapsed === 'true') {
+                item.classList.add('task-collapsed');
+            }
+        } else {
+            item.classList.remove('task-hidden', 'task-collapsed');
+            btn.textContent = 'Hide';
         }
-        item.classList.toggle('task-hidden', isHiding);
-        updateHiddenBar(btn.closest('.checklist-group'));
+        updateHiddenBar(group);
     }
 
     function updateHiddenBar(group) {
@@ -297,28 +306,24 @@
         const bar = group.querySelector('.hidden-tasks-bar');
         if (!bar) return;
         bar.style.display = hiddenCount > 0 ? 'block' : 'none';
-        bar.querySelector('.hidden-count').textContent = hiddenCount;
-        // If no hidden tasks remain, reset show-hidden state
         if (hiddenCount === 0) {
-            group.querySelectorAll('.task-item').forEach(i => i.classList.remove('show-hidden'));
-            const link = bar.querySelector('a');
-            link.dataset.showing = '';
-            link.innerHTML = '&#9658; Show <span class="hidden-count">0</span> hidden task(s)';
+            group.dataset.collapsed = 'false';
+            return;
         }
+        const isCollapsed = group.dataset.collapsed === 'true';
+        bar.querySelector('a').innerHTML = isCollapsed
+            ? `&#9658; Show <span class="hidden-count">${hiddenCount}</span> hidden task(s)`
+            : `&#9660; Collapse <span class="hidden-count">${hiddenCount}</span> hidden task(s)`;
     }
 
     function toggleShowHidden(link) {
         const group = link.closest('.checklist-group');
-        const isShowing = link.dataset.showing === 'true';
+        const isCollapsed = group.dataset.collapsed === 'true';
         group.querySelectorAll('.task-item.task-hidden').forEach(item => {
-            item.classList.toggle('show-hidden', !isShowing);
-            item.querySelector('.btn-hide').textContent = isShowing ? 'Hide' : 'Unhide';
+            item.classList.toggle('task-collapsed', !isCollapsed);
         });
-        const count = group.querySelector('.hidden-count').textContent;
-        link.dataset.showing = !isShowing;
-        link.innerHTML = isShowing
-            ? `&#9658; Show <span class="hidden-count">${count}</span> hidden task(s)`
-            : `&#9660; Hide <span class="hidden-count">${count}</span> hidden task(s)`;
+        group.dataset.collapsed = !isCollapsed;
+        updateHiddenBar(group);
     }
 
     function removeRow(btn) {
@@ -608,9 +613,15 @@
                 for (const [id, isHidden] of Object.entries(data.hidden || {})) {
                     const cb = document.getElementById(id);
                     const item = cb ? cb.closest('.task-item') : null;
-                    if (item) item.classList.toggle('task-hidden', isHidden);
+                    if (item) {
+                        item.classList.toggle('task-hidden', isHidden);
+                        if (isHidden) item.querySelector('.btn-hide').textContent = 'Unhide';
+                    }
                 }
-                document.querySelectorAll('.checklist-group').forEach(group => updateHiddenBar(group));
+                document.querySelectorAll('.checklist-group').forEach(group => {
+                    group.dataset.collapsed = 'false';
+                    updateHiddenBar(group);
+                });
                 const devTable = document.getElementById('deviceTable');
                 while (devTable.rows.length > 1) devTable.deleteRow(1);
                 if(data.devices) {
