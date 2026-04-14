@@ -431,7 +431,8 @@
         if (!outstandingIssues) outstandingIssues = "• None\n";
 
         let workHoursLog = "";
-        let totalHours = 0;
+        let totalBillable = 0;
+        let totalTravel = 0;
         document.querySelectorAll('.hourRow').forEach(row => {
             const dateVal = row.querySelector('.hourDate').value;
             const typeVal = row.querySelector('.hourType').value;
@@ -443,14 +444,17 @@
             }
             if (typeVal === 'Travel') {
                 workHoursLog += `${formattedDate} - 2 Travel Hours Billable\n`;
-                totalHours += 2;
+                totalTravel += 2;
             } else if (typeVal === 'Billable' && hoursVal > 0) {
                 workHoursLog += `${formattedDate} - ${hoursVal} Billable Hours\n`;
-                totalHours += hoursVal;
+                totalBillable += hoursVal;
             }
         });
         if (!workHoursLog) workHoursLog = "No hours logged.\n";
-        else workHoursLog += `\nTotal Hours: ${totalHours} Total Billable\n`;
+        else {
+            workHoursLog += `\nTotal Billable Hours: ${totalBillable}\n`;
+            workHoursLog += `Total Travel Hours Billable: ${totalTravel}\n`;
+        }
 
         // ASSEMBLE FINAL REPORT DYNAMICALLY
         let report = `Customer: ${customer}\nRevenue Center: ${revCenter}\n\n`;
