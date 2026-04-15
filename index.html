@@ -203,6 +203,7 @@
     <table id="deviceTable">
         <tr>
             <th>Hostname</th>
+            <th>IP Address</th>
             <th>Serial Number</th>
             <th>Device Key</th>
             <th>Hardware Type</th>
@@ -210,8 +211,9 @@
         </tr>
         <tr class="devRow">
             <td><input type="text" class="devName" value="PTM"></td>
+            <td><input type="text" class="devIP" placeholder="e.g., 192.168.1.10"></td>
             <td><input type="text" class="devSerial" placeholder="e.g., SN-12345"></td>
-            <td><input type="text" class="devKey" placeholder="e.g., ABC-123"></td>
+            <td><input type="text" class="devKey" placeholder="e.g., ABCD1234-EFGH5678" oninput="formatDeviceKey(this)"></td>
             <td>
                 <select class="devType">
                     <option value="">-- Select --</option>
@@ -224,8 +226,9 @@
         </tr>
         <tr class="devRow">
             <td><input type="text" class="devName" value="STM"></td>
+            <td><input type="text" class="devIP" placeholder="e.g., 192.168.1.11"></td>
             <td><input type="text" class="devSerial" placeholder="e.g., SN-67890"></td>
-            <td><input type="text" class="devKey" placeholder="e.g., DEF-456"></td>
+            <td><input type="text" class="devKey" placeholder="e.g., ABCD1234-EFGH5678" oninput="formatDeviceKey(this)"></td>
             <td>
                 <select class="devType">
                     <option value="">-- Select --</option>
@@ -337,8 +340,9 @@
         row.className = "devRow";
         row.innerHTML = `
             <td><input type="text" class="devName" placeholder="Hostname"></td>
+            <td><input type="text" class="devIP" placeholder="IP Address"></td>
             <td><input type="text" class="devSerial" placeholder="Serial Number"></td>
-            <td><input type="text" class="devKey" placeholder="Device Key"></td>
+            <td><input type="text" class="devKey" placeholder="Device Key" oninput="formatDeviceKey(this)"></td>
             <td>
                 <select class="devType">
                     <option value="">-- Select --</option>
@@ -349,6 +353,18 @@
             </td>
             <td class="action-col"><button class="btn btn-delete" onclick="removeRow(this)">X</button></td>
         `;
+    }
+
+    function formatDeviceKey(input) {
+        const cursorPos = input.selectionStart;
+        const prevLen = input.value.length;
+        // Strip everything except alphanumeric, limit to 32 content chars
+        let raw = input.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+        // Insert a dash after every 8 chars
+        input.value = raw.match(/.{1,8}/g)?.join('-') || '';
+        // Adjust cursor position for inserted dashes
+        const newLen = input.value.length;
+        input.setSelectionRange(cursorPos + (newLen - prevLen), cursorPos + (newLen - prevLen));
     }
 
     function addIssueRow() {
@@ -451,10 +467,7 @@
             }
         });
         if (!workHoursLog) workHoursLog = "No hours logged.\n";
-        else {
-            workHoursLog += `\nTotal Billable Hours: ${totalBillable}\n`;
-            workHoursLog += `Total Travel Hours Billable: ${totalTravel}\n`;
-        }
+        else workHoursLog += `\nTotal Billable Hours: ${totalBillable}\n`;
 
         // ASSEMBLE FINAL REPORT DYNAMICALLY
         let report = `Customer: ${customer}\nRevenue Center: ${revCenter}\n\n`;
@@ -496,14 +509,15 @@
 
     function exportCSV() {
         const rows = document.querySelectorAll('.devRow');
-        let csvContent = "data:text/csv;charset=utf-8,Hostname,Serial Number,Device Key,Hardware Type\n";
+        let csvContent = "data:text/csv;charset=utf-8,Hostname,IP Address,Serial Number,Device Key,Hardware Type\n";
         rows.forEach(row => {
             const name = row.querySelector('.devName').value;
+            const ip = row.querySelector('.devIP').value;
             const serial = row.querySelector('.devSerial').value;
             const key = row.querySelector('.devKey').value;
             const type = row.querySelector('.devType').value;
-            if (name || serial || key || type) {
-                csvContent += `"${name}","${serial}","${key}","${type}"\n`;
+            if (name || ip || serial || key || type) {
+                csvContent += `"${name}","${ip}","${serial}","${key}","${type}"\n`;
             }
         });
         const encodedUri = encodeURI(csvContent);
@@ -537,6 +551,7 @@
         document.querySelectorAll('.devRow').forEach(row => {
             data.devices.push({
                 name: row.querySelector('.devName').value,
+                ip: row.querySelector('.devIP').value,
                 serial: row.querySelector('.devSerial').value,
                 key: row.querySelector('.devKey').value,
                 type: row.querySelector('.devType').value
@@ -633,6 +648,7 @@
                         addDeviceRow();
                         const lastRow = devTable.rows[devTable.rows.length - 1];
                         lastRow.querySelector('.devName').value = dev.name || '';
+                        lastRow.querySelector('.devIP').value = dev.ip || '';
                         lastRow.querySelector('.devSerial').value = dev.serial || '';
                         lastRow.querySelector('.devKey').value = dev.key || '';
                         lastRow.querySelector('.devType').value = dev.type || '';
