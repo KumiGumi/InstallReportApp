@@ -68,7 +68,9 @@
     <h2>1. Job Information</h2>
     <label>Project Name (For Save File):</label> <input type="text" id="projectName" placeholder="e.g., First Solar Site A">
     <label>Customer:</label> <input type="text" id="customer" placeholder="e.g., Compass">
-    <label>Revenue Center:</label> <input type="text" id="revenueCenter" placeholder="e.g., FRSTSOLR - First Solar #23716">
+    <label>Theme:</label> <input type="text" id="theme" placeholder="e.g., EurestPro">
+    <label>Revenue Center:</label> <input type="text" id="revenueCenter" placeholder="e.g., Lonza #72005 NEW LOCATION (Vacaville, CA)">
+    <label>Revenue ID:</label> <input type="text" id="revenueID" placeholder="e.g., LONZANEW">
 
     <h2>2. Task Checklist</h2>
     <label>Select Job Type:</label>
@@ -242,6 +244,8 @@
     </table>
     <button class="btn btn-green" onclick="addDeviceRow()">+ Add Device</button>
     <button class="btn" onclick="exportCSV()" style="background-color: #17a2b8;">⬇ Export Inventory to CSV</button>
+    <button class="btn" onclick="exportTXT()" style="background-color: #6f42c1;">⬇ Export as Text</button>
+    <label class="btn" style="background-color: #6f42c1; cursor:pointer;">⬆ Import from Text <input type="file" accept=".txt,.md" style="display:none;" onchange="importTXT(event)"></label>
 
     <h2>4. Issues Log</h2>
     <table id="issuesTable">
@@ -529,13 +533,108 @@
         document.body.removeChild(link);
     }
 
+    function exportTXT() {
+        const theme = document.getElementById('theme').value;
+        const revCenter = document.getElementById('revenueCenter').value;
+        const revID = document.getElementById('revenueID').value;
+        const pName = (document.getElementById('projectName').value || 'Device_List').replace(/\s+/g, '_');
+
+        let content = '';
+        if (theme) content += `Theme: ${theme}\n\n`;
+        if (revCenter) content += `Revenue Center: ${revCenter}\n\n`;
+        if (revID) content += `Revenue ID: ${revID}\n\n`;
+        content += '\n\nClient License Keys:\n';
+
+        document.querySelectorAll('.devRow').forEach(row => {
+            const name = row.querySelector('.devName').value.trim();
+            const ip   = row.querySelector('.devIP').value.trim();
+            const key  = row.querySelector('.devKey').value.trim();
+            const serial = row.querySelector('.devSerial').value.trim();
+            if (!name && !ip) return;
+            let line = name;
+            if (ip) line += ` @ ${ip}`;
+            if (key) {
+                line += `    ${key}`;
+                if (serial) line += ` --- ${serial}`;
+            }
+            content += line + '\n';
+        });
+
+        const blob = new Blob([content], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = pName + '_ClientKeys.txt';
+        link.click();
+    }
+
+    function importTXT(event) {
+        const file = event.target.files[0];
+        event.target.value = '';
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const lines = e.target.result.split('\n');
+            let inDevices = false;
+            const devTable = document.getElementById('deviceTable');
+            while (devTable.rows.length > 1) devTable.deleteRow(1);
+            let devIndex = 0;
+
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (!inDevices) {
+                    if (trimmed.startsWith('Theme:'))
+                        document.getElementById('theme').value = trimmed.slice('Theme:'.length).trim();
+                    else if (trimmed.startsWith('Revenue Center:'))
+                        document.getElementById('revenueCenter').value = trimmed.slice('Revenue Center:'.length).trim();
+                    else if (trimmed.startsWith('Revenue ID:'))
+                        document.getElementById('revenueID').value = trimmed.slice('Revenue ID:'.length).trim();
+                    else if (trimmed === 'Client License Keys:')
+                        inDevices = true;
+                } else {
+                    if (!trimmed) return;
+                    // Strip any leading annotation chars (e.g. "***|")
+                    const clean = trimmed.replace(/^[^a-zA-Z0-9]+/, '');
+                    let hostname = '', ip = '', key = '', serial = '';
+
+                    const atSplit = clean.split(' @ ');
+                    hostname = atSplit[0].trim();
+                    if (atSplit.length > 1) {
+                        const rest = atSplit[1];
+                        const spaceSplit = rest.split(/\s{2,}|\t/);
+                        ip = spaceSplit[0].trim();
+                        if (spaceSplit.length > 1) {
+                            const dashSplit = spaceSplit[1].split(' --- ');
+                            key = dashSplit[0].trim();
+                            if (dashSplit.length > 1) serial = dashSplit[1].trim();
+                        }
+                    }
+
+                    if (hostname || ip) {
+                        addDeviceRow();
+                        const lastRow = devTable.rows[devTable.rows.length - 1];
+                        lastRow.querySelector('.devName').value = hostname;
+                        lastRow.querySelector('.devIP').value = ip;
+                        lastRow.querySelector('.devKey').value = key;
+                        lastRow.querySelector('.devSerial').value = serial;
+                        if (devIndex < 2)
+                            lastRow.querySelector('.action-col').innerHTML = '<span style="color: gray; font-size: 0.8em;">Req.</span>';
+                        devIndex++;
+                    }
+                }
+            });
+        };
+        reader.readAsText(file);
+    }
+
     // --- UPDATED: NATIVE SAVE AS LOGIC ---
     async function saveProjectState() {
         const pName = document.getElementById('projectName').value || "Unnamed_Project";
         const data = {
             projectName: pName,
             customer: document.getElementById('customer').value,
+            theme: document.getElementById('theme').value,
             revenueCenter: document.getElementById('revenueCenter').value,
+            revenueID: document.getElementById('revenueID').value,
             jobType: document.getElementById('jobType').value,
             includePending: document.getElementById('includePending').checked,
             checkboxes: {},
@@ -619,7 +718,9 @@
             try {
                 document.getElementById('projectName').value = data.projectName || '';
                 document.getElementById('customer').value = data.customer || '';
+                document.getElementById('theme').value = data.theme || '';
                 document.getElementById('revenueCenter').value = data.revenueCenter || '';
+                document.getElementById('revenueID').value = data.revenueID || '';
                 document.getElementById('jobType').value = data.jobType || '';
                 if (data.includePending !== undefined) {
                     document.getElementById('includePending').checked = data.includePending;
